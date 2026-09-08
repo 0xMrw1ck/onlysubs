@@ -16,6 +16,7 @@ test('private website has valid local links and no local-editor API or tracking 
   }
  }
  const index=await fs.readFile(path.join(root,'index.html'),'utf8')
- assert.match(index,/Public download not published yet/)
+ assert.match(index,/github\.com\/0xMrw1ck\/onlysubs\/releases\/latest\/download\/onlysubs-0\.3\.0-windows-x64\.exe/)
+ assert.match(index,/No Python, FFmpeg, terminal, account, or installer setup/)
  assert.doesNotMatch(await fs.readFile(path.join(root,'demo.js'),'utf8'),/fetch\(|localStorage|document\.cookie/)
 })

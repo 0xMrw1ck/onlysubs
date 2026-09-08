@@ -32,13 +32,13 @@ export const policies={
  ]},
  security:{title:'Security & responsible use',sections:[
  ['Local boundaries','The packaged desktop server binds only to loopback and requires a per-launch secret supplied by Electron. Renderer Node access is disabled, sandboxing is enabled, external navigation and permissions are blocked, and the production app uses a restrictive content policy. These safeguards reduce risk; they are not a guarantee against all attacks.'],
- ['Safe media handling','Import only media you trust. Imports have an 8 GB limit and must fit available storage. FFmpeg, Python, and model dependencies should be kept current. Media decoders can have vulnerabilities; this release has not received an independent penetration test.'],
+ ['Safe media handling','Import only media you trust. Imports have an 8 GB limit and must fit available storage. The all-in-one release includes FFmpeg, a Python runtime, and faster-whisper; obtain updates only from the verified release page. Media decoders can have vulnerabilities; this release has not received an independent penetration test.'],
  ['Report privately','Send a minimal description to jakenftwick@gmail.com. Do not include secrets, private media, or exploit anyone else’s data. No bug bounty or guaranteed response time is offered.'],
  ['Release integrity','The initial Windows package is unsigned unless the download page explicitly states otherwise. Compare its published SHA-256 checksum. Do not turn off antivirus or device security to run it. Code signing and clean-machine testing are required before calling the release production-ready.']
  ]},
  'open-source':{title:'Third-party notices',sections:[
  ['Application components','The Windows package uses Electron (MIT), React and React DOM (MIT), plus Electron’s bundled Chromium and Node.js components with their respective notices. Full available licence texts accompany the release in THIRD-PARTY-NOTICES.txt and Electron’s LICENSES.chromium.html.'],
- ['Locally installed processing tools','FFmpeg/ffprobe, Python, faster-whisper, CTranslate2, optional Ollama, and downloaded model weights are installed separately in this release. They are not bundled with the onlysubs executable. Their licences and resource requirements apply independently. FFmpeg builds may be LGPL or GPL depending on enabled components; verify the actual build before redistribution.'],
+ ['Included processing tools','The all-in-one release bundles FFmpeg/ffprobe 9.0.1 GPL build, a Python runtime, faster-whisper, CTranslate2, PyAV, tokenizers, and supporting packages. Their licences and notices accompany the release. Speech-model weights download separately on first use under their model licence. Ollama is optional and not bundled. FFmpeg corresponding-source and build information must accompany public distribution.'],
  ['No implied affiliation','onlysubs is a WickWorks portfolio project and is not affiliated with CapCut, WayinVideo, or the dependency publishers. Caption styles are generic presets, not proprietary templates copied from those products. The onlysubs brand has not undergone trademark clearance.']
  ]}
 }

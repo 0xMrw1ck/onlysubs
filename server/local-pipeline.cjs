@@ -5,7 +5,9 @@ const { pathToFileURL } = require('url')
 const { randomUUID } = require('crypto')
 const root = process.env.REEL_DATA_ROOT || path.resolve(__dirname,'..')
 const workDir = path.join(root,'work'), outputDir = path.join(root,'outputs')
-const defaults = {ffmpegPath:'ffmpeg',ffprobePath:'ffprobe',pythonPath:'python',transcriptionModel:'small',ollamaUrl:'http://127.0.0.1:11434',model:'qwen3:8b',outputFolder:outputDir}
+const engineDir=process.env.ONLYSUBS_ENGINE_DIR
+const bundledTranscriber=engineDir&&path.join(engineDir,'onlysubs-transcriber','onlysubs-transcriber.exe')
+const defaults = {ffmpegPath:engineDir?path.join(engineDir,'ffmpeg.exe'):'ffmpeg',ffprobePath:engineDir?path.join(engineDir,'ffprobe.exe'):'ffprobe',pythonPath:'python',transcriberPath:bundledTranscriber||'',transcriptionModel:'small',ollamaUrl:'http://127.0.0.1:11434',model:'qwen3:8b',outputFolder:outputDir}
 const safeName=s=>String(s||'video').replace(/[^a-z0-9._-]/gi,'-').slice(0,65)
 function run(bin,args,{cwd,onProgress}={}) {
   return new Promise((resolve,reject)=>{
@@ -20,9 +22,14 @@ function run(bin,args,{cwd,onProgress}={}) {
     child.on('close',code=>code===0?resolve(out):reject(new Error(bin+' failed: '+err.slice(-1600))))
   })
 }
-async function getSettings(){try{const saved=JSON.parse(await fs.readFile(path.join(workDir,'settings.json'),'utf8'));delete saved.whisperxPath;return {...defaults,...saved}}catch{return {...defaults}}}
-async function saveSettings(s){await fs.mkdir(workDir,{recursive:true});const next=Object.fromEntries(Object.keys(defaults).map(k=>[k,s[k]??defaults[k]]));await fs.writeFile(path.join(workDir,'settings.json'),JSON.stringify(next,null,2));return next}
-async function health(){const s=await getSettings();const [ffmpeg,transcriber]=await Promise.all([run(s.ffmpegPath,['-version']).then(()=>true,()=>false),run(s.pythonPath,['-c','import faster_whisper']).then(()=>true,()=>false)]);return {ffmpeg,transcriber,ready:ffmpeg&&transcriber}}
+async function getSettings(){
+  let next={...defaults}
+  try{const saved=JSON.parse(await fs.readFile(path.join(workDir,'settings.json'),'utf8'));delete saved.whisperxPath;next={...next,...saved}}catch{}
+  if(engineDir)Object.assign(next,{ffmpegPath:path.join(engineDir,'ffmpeg.exe'),ffprobePath:path.join(engineDir,'ffprobe.exe'),pythonPath:'Included with onlysubs',transcriberPath:bundledTranscriber})
+  return next
+}
+async function saveSettings(s){await fs.mkdir(workDir,{recursive:true});const next=Object.fromEntries(Object.keys(defaults).map(k=>[k,s[k]??defaults[k]]));await fs.writeFile(path.join(workDir,'settings.json'),JSON.stringify(next,null,2));return getSettings()}
+async function health(){const s=await getSettings(),embedded=!!s.transcriberPath;const [ffmpeg,transcriber]=await Promise.all([run(s.ffmpegPath,['-version']).then(()=>true,()=>false),embedded?run(s.transcriberPath,['--health']).then(()=>true,()=>false):run(s.pythonPath,['-c','import faster_whisper']).then(()=>true,()=>false)]);return {ffmpeg,transcriber,embedded,ready:ffmpeg&&transcriber}}
 async function probe(video){
   const s=await getSettings(),data=JSON.parse(await run(s.ffprobePath,['-v','error','-show_format','-show_streams','-of','json',video]))
   const stream=data.streams.find(s=>s.codec_type==='video');if(!stream)throw new Error('No video stream found.')
@@ -34,8 +41,9 @@ async function analyse({jobId,video,onStage=async()=>{}}){
   const metadata=await probe(video),audio=path.join(temp,'audio.wav'),transcriptFile=path.join(temp,'transcript.json')
   await onStage(12,'Extracting audio');await run(s.ffmpegPath,['-y','-i',video,'-vn','-ac','1','-ar','16000',audio])
   await onStage(38,'Transcribing and aligning words. This stage can take several minutes.')
-  const script=path.join(__dirname,'transcribe.py').replace('app.asar'+path.sep,'app.asar.unpacked'+path.sep)
-  await run(s.pythonPath,[script,audio,transcriptFile,'--model',s.transcriptionModel])
+  const script=path.join(__dirname,'transcribe.py').replace('app.asar'+path.sep,'app.asar.unpacked'+path.sep),cache=path.join(root,'models')
+  if(s.transcriberPath)await run(s.transcriberPath,[audio,transcriptFile,'--model',s.transcriptionModel,'--cache-dir',cache])
+  else await run(s.pythonPath,[script,audio,transcriptFile,'--model',s.transcriptionModel,'--cache-dir',cache])
   const raw=JSON.parse(await fs.readFile(transcriptFile,'utf8')),segments=raw.segments.map(x=>({...x,text:x.text.trim()}))
   await onStage(76,'Finding clip suggestions');let clips=[],warning=''
   try{

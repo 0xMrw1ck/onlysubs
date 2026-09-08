@@ -8,8 +8,8 @@ app.whenReady().then(async()=>{
  try{
   const session=require('../server/security.cjs').createSession()
   let url='http://127.0.0.1:5173'
-  if(!process.argv.includes('--dev')){
-    if(app.isPackaged)process.env.REEL_DATA_ROOT=app.getPath('userData')
+ if(!process.argv.includes('--dev')){
+    if(app.isPackaged){process.env.REEL_DATA_ROOT=app.getPath('userData');process.env.ONLYSUBS_ENGINE_DIR=path.join(process.resourcesPath,'engines')}
     server=await require('../server/start.cjs').startServer(0,{session})
     url='http://127.0.0.1:'+server.address().port
   }

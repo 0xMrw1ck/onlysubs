@@ -1,6 +1,6 @@
 {
   "name": "onlysubs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "WickWorks <jakenftwick@gmail.com>",
   "description": "onlysubs — a clipping tool for everyone",
   "main": "electron/main.cjs",
@@ -19,6 +19,7 @@
     "directories": {"output":"work/windows-build"},
     "artifactName": "onlysubs-${version}-windows-${arch}.${ext}",
     "extraFiles": [{"from":"work/THIRD-PARTY-NOTICES.txt","to":"THIRD-PARTY-NOTICES.txt"}],
+    "extraResources": [{"from":"work/engines","to":"engines"}],
     "files": [
       "dist/**/*",
       "electron/**/*",

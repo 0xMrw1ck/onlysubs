@@ -40,7 +40,7 @@ Completed jobs stop polling, so selections and edits stay as you set them. Reloa
 
 ## Local engines
 
-FFmpeg and FFprobe must be available. Transcription uses Python with `faster-whisper`; settings accept explicit paths. The speech model downloads on first use. Ollama is optional: without it, suggestions use transcript boundaries and are labelled accordingly.
+The public Windows build includes FFmpeg, FFprobe, a private Python runtime, and `faster-whisper`; users do not configure paths or run terminal commands. The selected speech model downloads on first transcription and is then reused locally. Ollama remains optional: without it, suggestions use transcript boundaries and are labelled accordingly.
 
 The browser and desktop now share one processing implementation. No cloud AI service receives video/audio. Speech recognition can still mishear mixed languages, names and noisy speech; review corrections before export. Existing text burned into the source cannot be resized by caption controls.
 
@@ -58,7 +58,7 @@ The onlysubs brand mark is in `public/onlysubs-logo.png`. Legacy storage keys an
 
 `npm run build` produces an unsigned x64 portable executable under `work/windows-build`. `npm run build:site` prepares a separate static private preview under `site/dist`, never the local API. `node scripts/build-site.mjs --public-release` prepares `outputs/website` with the real release download link; `node scripts/release.mjs <build-folder>` adds the EXE/checksum/notices. Do not publish an incomplete website download folder.
 
-The Windows app requires separately installed FFmpeg/ffprobe and Python with faster-whisper. It does not package the user's media, downloaded speech models, or processing engines. The generated setup page explains configuration. Electron's embedded media libraries are covered by its bundled notices.
+The Windows app bundles its processing engines but never packages the user's media or downloaded speech-model weights. The generated setup page explains the one-time model download and storage controls. Electron's embedded media libraries and bundled processing dependencies are covered by the included notices; the FFmpeg build is GPLv3 and must be distributed with its required licence and corresponding-source materials.
 
 The packaged API is protected by an ephemeral secret attached only to same-origin Electron requests. Development browser mode remains local-only, with Host/Origin/Fetch-Site checks; it is not a public hosting server. Production Electron blocks external navigation, new windows and permissions, disables renderer Node access, and enables sandboxing. Import validation limits size and resolves the real local media path. Ollama redirects are denied.
 
