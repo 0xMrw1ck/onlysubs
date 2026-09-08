@@ -1,0 +1,11 @@
+﻿node_modules/
+dist/
+work/
+outputs/
+site/dist/
+.openai/
+.codex/
+.env
+.env.*
+!.env.example
+*.log
