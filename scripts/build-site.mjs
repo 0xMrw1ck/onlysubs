@@ -5,7 +5,7 @@ const root=path.resolve('site'),publicRelease=process.argv.includes('--public-re
 await fs.mkdir(out,{recursive:true})
 for(const name of ['index.html','site.css','demo.js'])await fs.copyFile(path.join(root,name),path.join(out,name))
 const html=await fs.readFile(path.join(out,'index.html'),'utf8')
-const releaseLink='https://github.com/0xMrw1ck/onlysubs/releases/latest/download/onlysubs-0.3.0-windows-x64.exe'
+const releaseLink='https://github.com/0xMrw1ck/onlysubs/releases/download/v0.4.0/onlysubs-0.4.0-setup-x64.exe'
 await fs.writeFile(path.join(out,'index.html'),html.replace(/href="downloads\/onlysubs-0\.3\.0-windows-x64\.exe"/g,`href="${releaseLink}"`).replace(/href="downloads\/SHA256SUMS\.txt"/g,'href="https://github.com/0xMrw1ck/onlysubs/releases/latest/download/SHA256SUMS.txt"'))
 await fs.copyFile('public/onlysubs-logo.png',path.join(out,'onlysubs-logo.png'))
 const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')
@@ -16,3 +16,7 @@ const csp="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'sel
 await fs.writeFile(path.join(out,'_headers'),`/*\n  Content-Security-Policy: ${csp}\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n`)
 await fs.writeFile(path.join(out,'.htaccess'),`<IfModule mod_headers.c>\nHeader always set Content-Security-Policy "${csp}"\nHeader always set X-Content-Type-Options "nosniff"\nHeader always set Referrer-Policy "no-referrer"\nHeader always set Permissions-Policy "camera=(), microphone=(), geolocation=()"\n</IfModule>\nOptions -Indexes\n`)
 console.log('Built standalone static site: '+out)
+const builtIndex=await fs.readFile(path.join(out,'index.html'),'utf8')
+await fs.writeFile(path.join(out,'index.html'),builtIndex.replace('One portable download','One Windows installer').replace('No Python, FFmpeg, terminal, account, or installer setup.','No separate Python or FFmpeg setup. Permanent Free tier. Optional updates are available in Help.'))
+const setup=await fs.readFile(path.join(out,'setup.html'),'utf8')
+await fs.writeFile(path.join(out,'setup.html'),setup.replace('Run the portable executable. No installer, Python, FFmpeg, terminal, account, or subscription is required.','Run the Windows installer, then open onlysubs. Core editing features remain permanently free. The app checks GitHub for updates; choose Download when offered, then close the app after finishing your work to install. Updates preserve projects and models. Users of portable 0.3.0 need this installer once. No separate Python or FFmpeg installation or account is required.').replace('The desktop app is portable, but its saved data and downloaded speech model are not stored beside the EXE.','Saved data and downloaded speech models are stored separately from the installed application.'))

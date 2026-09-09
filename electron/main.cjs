@@ -24,6 +24,7 @@ app.whenReady().then(async()=>{
     if(request.origin!==origin)return callback({cancel:true})
     callback({requestHeaders:{...details.requestHeaders,'X-Onlysubs-Session':session.token}})
   })
+  require('./updates.cjs').setupUpdates(win)
   win.loadURL(url)
  }catch(error){dialog.showErrorBox('onlysubs could not start',error.message);app.quit()}
 })
