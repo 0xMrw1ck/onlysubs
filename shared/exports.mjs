@@ -4,12 +4,33 @@ export const exportQualities = {
   balanced: {label:'Balanced · smaller file / faster', crf:20, preset:'fast'}
 }
 
+export const socialPlatforms = {
+  tiktok: {label:'TikTok', layout:'vertical'},
+  reels: {label:'Instagram Reels', layout:'vertical'},
+  instagram: {label:'Instagram feed', layout:'portrait'},
+  facebook: {label:'Facebook feed', layout:'portrait'},
+  x: {label:'X', layout:'landscape'},
+  youtube: {label:'YouTube', layout:'landscape'},
+  custom: {label:'Custom preview', layout:'original'},
+}
+
+const layouts = {
+  vertical: [9,16],
+  portrait: [4,5],
+  square: [1,1],
+  landscape: [16,9],
+}
+
 export function outputDimensions(metadata, layout='original') {
   const width=Number(metadata?.width)||1920, height=Number(metadata?.height)||1080
-  // Do not enlarge a low-resolution crop to 1080×1920: it only magnifies blur.
-  if(layout==='vertical'){
-    const units=Math.max(1,Math.floor(Math.min(1080/18,width/18,height/32)))
-    return {width:units*18,height:units*32}
+  const ratio=layouts[layout]
+  // Social formats centre-crop to fill their frame. Never enlarge a small source
+  // simply to reach a platform's nominal 1080-pixel size.
+  if(ratio){
+    const [x,y]=ratio
+    let units=Math.max(1,Math.floor(Math.min(1080/x,width/x,height/y)))
+    if((x%2||y%2)&&units>1)units-=units%2
+    return {width:Math.max(2,units*x),height:Math.max(2,units*y)}
   }
   return {width:Math.ceil(width/2)*2,height:Math.ceil(height/2)*2}
 }

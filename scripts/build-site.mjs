@@ -5,7 +5,7 @@ const root=path.resolve('site'),publicRelease=process.argv.includes('--public-re
 await fs.mkdir(out,{recursive:true})
 for(const name of ['index.html','site.css','demo.js'])await fs.copyFile(path.join(root,name),path.join(out,name))
 const html=await fs.readFile(path.join(out,'index.html'),'utf8')
-const releaseLink='https://github.com/0xMrw1ck/onlysubs/releases/download/v0.4.0/onlysubs-0.4.0-setup-x64.exe'
+const releaseLink='https://github.com/0xMrw1ck/onlysubs/releases/download/v0.5.0/onlysubs-0.5.0-setup-x64.exe'
 await fs.writeFile(path.join(out,'index.html'),html.replace(/href="downloads\/onlysubs-0\.3\.0-windows-x64\.exe"/g,`href="${releaseLink}"`).replace(/href="downloads\/SHA256SUMS\.txt"/g,'href="https://github.com/0xMrw1ck/onlysubs/releases/latest/download/SHA256SUMS.txt"'))
 await fs.copyFile('public/onlysubs-logo.png',path.join(out,'onlysubs-logo.png'))
 const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')

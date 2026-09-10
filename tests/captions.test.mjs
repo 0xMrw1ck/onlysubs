@@ -16,3 +16,9 @@ test('ASS declares real frame dimensions and rebases clipped cues',()=>{
  assert.match(ass,/Dialogue: 0,0:00:04.00,0:00:05.00/)
  assert.doesNotMatch(makeAss([],0,10,1080,1920),/Dialogue:/)
 })
+test('ASS accepts text and background appearance controls',()=>{
+ const ass=makeAss([{start:0,end:2,text:'Visible caption'}],0,3,1080,1920,{captionPreset:'clean',captionColor:'#ff0077',captionBackground:'#123456',captionBackgroundOpacity:60})
+ assert.match(ass,/&H007700FF/i)
+ assert.match(ass,/&H661?563412/)
+ assert.match(ass,/,3,/) // ASS BorderStyle 3 creates the background box.
+})

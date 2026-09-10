@@ -36,10 +36,11 @@ export function captionCues(transcript = []) {
   }
   return cues.sort((a,b)=>a.start-b.start)
 }
-export function captionStyle(preset, width, height, scale = 1, bottom = 12) {
+const colour=(value,fallback)=>/^#[0-9a-f]{6}$/i.test(value||'')?value:fallback
+export function captionStyle(preset, width, height, scale = 1, bottom = 12, options = {}) {
   const p = presets[preset] || presets.clean
   const base = Math.min(width,height)
-  return {...p, fontSize:Math.round(base*p.size*Math.max(.6,Math.min(1.6,Number(scale)||1))), stroke:base*p.outline, margin:height*Math.max(5,Math.min(35,Number(bottom)||12))/100}
+  return {...p,color:colour(options.captionColor,p.color),backgroundColor:colour(options.captionBackground,'#101010'),backgroundOpacity:Math.max(0,Math.min(100,Number(options.captionBackgroundOpacity)||0)),fontSize:Math.round(base*p.size*Math.max(.6,Math.min(1.6,Number(scale)||1))), stroke:base*p.outline, margin:height*Math.max(5,Math.min(35,Number(bottom)||12))/100}
 }
 export function captionLines(text) {
   const words=text.split(/\s+/), lines=['']
@@ -51,9 +52,11 @@ export function captionLines(text) {
 }
 const time=s=>{const n=Math.max(0,Math.round(s*100));return `${Math.floor(n/360000)}:${String(Math.floor(n/6000)%60).padStart(2,'0')}:${String(Math.floor(n/100)%60).padStart(2,'0')}.${String(n%100).padStart(2,'0')}`}
 export function makeAss(transcript, start, end, width, height, options={}) {
-  const style=captionStyle(options.captionPreset,width,height,options.captionScale,options.captionBottom)
-  const hex=style.color.slice(1), color=`&H00${hex.slice(4,6)}${hex.slice(2,4)}${hex.slice(0,2)}`
-  const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: ${width}\nPlayResY: ${height}\nScaledBorderAndShadow: yes\nWrapStyle: 2\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Default,Arial,${style.fontSize},${color},${color},&H00101010,&H80000000,${style.weight>600?-1:0},0,0,0,100,100,0,0,1,${style.stroke.toFixed(2)},0,2,${Math.round(width*.06)},${Math.round(width*.06)},${Math.round(style.margin)},1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`
+  const style=captionStyle(options.captionPreset,width,height,options.captionScale,options.captionBottom,options)
+  const assColour=(hex,alpha='00')=>`&H${alpha}${hex.slice(5,7)}${hex.slice(3,5)}${hex.slice(1,3)}`
+  const color=assColour(style.color), background=assColour(style.backgroundColor,(255-Math.round(style.backgroundOpacity*255/100)).toString(16).padStart(2,'0').toUpperCase())
+  const boxed=style.backgroundOpacity>0
+  const head=`[Script Info]\nScriptType: v4.00+\nPlayResX: ${width}\nPlayResY: ${height}\nScaledBorderAndShadow: yes\nWrapStyle: 2\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Default,Arial,${style.fontSize},${color},${color},&H00101010,${background},${style.weight>600?-1:0},0,0,0,100,100,0,0,${boxed?3:1},${boxed?Math.max(2,style.fontSize*.11).toFixed(2):style.stroke.toFixed(2)},0,2,${Math.round(width*.06)},${Math.round(width*.06)},${Math.round(style.margin)},1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n`
   return head+captionCues(transcript).filter(c=>c.end>start&&c.start<end).map(c=>{
     const clean=c.text.replace(/[{}\\]/g,'').replace(/[\r\n]/g,' ')
     return `Dialogue: 0,${time(Math.max(0,c.start-start))},${time(Math.min(end,c.end)-start)},Default,,0,0,0,,${captionLines(clean).join('\\N')}`

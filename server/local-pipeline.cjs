@@ -59,13 +59,16 @@ async function analyse({jobId,video,onStage=async()=>{}}){
   await onStage(95,'Saving transcript and suggestions')
   return {transcript:segments,clips:clips.map((c,i)=>({...c,id:'clip-'+i,selected:true})),metadata,warning}
 }
-async function exportClips({video,clips=[],transcript=[],fullVideo=false,combine=false,quality='high',layout='original',onProgress=()=>{},...options}){
+async function exportClips({video,clips=[],transcript=[],fullVideo=false,combine=false,quality='high',layout='original',outputFolder:onDemandFolder,onProgress=()=>{},...options}){
   const s=await getSettings(),metadata=await probe(video)
   const {exportRanges,outputDimensions,exportQualities}=await import(pathToFileURL(path.join(__dirname,'../shared/exports.mjs')).href)
   const selected=exportRanges(clips,metadata.duration,{fullVideo,combine}),encoding=exportQualities[quality]
   if(!encoding)throw new Error('Choose a supported export quality.')
   if(['smpte2084','arib-std-b67'].includes(metadata.colorTransfer))throw new Error('This source is HDR. Export currently supports SDR video; use an SDR copy to avoid washed-out colours.')
-  const folder=path.join(s.outputFolder||outputDir,'export-'+Date.now()+'-'+randomUUID().slice(0,8));await fs.mkdir(folder,{recursive:true})
+  const destination=path.resolve(onDemandFolder||s.outputFolder||outputDir)
+  await fs.mkdir(destination,{recursive:true})
+  await fs.access(destination)
+  const folder=path.join(destination,'export-'+Date.now()+'-'+randomUUID().slice(0,8));await fs.mkdir(folder,{recursive:true})
   const {makeAss}=await import(pathToFileURL(path.join(__dirname,'../shared/captions.mjs')).href)
   const {width,height}=outputDimensions(metadata,layout),joining=combine&&selected.length>1
   const total=selected.reduce((sum,c)=>sum+c.end-c.start,0),files=[],parts=[]
@@ -75,7 +78,7 @@ async function exportClips({video,clips=[],transcript=[],fullVideo=false,combine
   for(let i=0;i<selected.length;i++){
     const c=selected[i],end=c.end,duration=end-c.start,base=combine?'Combined-checked-clips':(i+1)+'-'+safeName(c.title),assName='captions-'+(i+1)+'.ass',filename=joining?'part-'+(i+1)+'.mkv':base+'.mp4'
     await fs.writeFile(path.join(folder,assName),makeAss(transcript,c.start,end,width,height,options))
-    const sizing=layout==='vertical'?'scale='+width+':'+height+':force_original_aspect_ratio=increase:flags=lanczos,crop='+width+':'+height+',setsar=1':'pad='+width+':'+height+':0:0'
+    const sizing=layout!=='original'?'scale='+width+':'+height+':force_original_aspect_ratio=increase:flags=lanczos,crop='+width+':'+height+',setsar=1':'pad='+width+':'+height+':0:0'
     const vf='setpts=PTS-STARTPTS,'+sizing+',subtitles='+assName
     const detail='Rendering '+(i+1)+' of '+selected.length+' · '+encoding.label.split(' · ')[0]
     onProgress(completed/total*(joining?94:99),detail)
