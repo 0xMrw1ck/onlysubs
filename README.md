@@ -56,7 +56,7 @@ The onlysubs brand mark is in `public/onlysubs-logo.png`. Legacy storage keys an
 
 ## Windows and website release
 
-`npm run build` produces an unsigned x64 portable executable under `work/windows-build`. `npm run build:site` prepares a separate static private preview under `site/dist`, never the local API. `node scripts/build-site.mjs --public-release` prepares `outputs/website` with the real release download link; `node scripts/release.mjs <build-folder>` adds the EXE/checksum/notices. Do not publish an incomplete website download folder.
+`npm run build` produces an unsigned x64 Windows installer under `work/windows-build`. `npm run build:site` prepares a separate static local preview under `site/dist`, never the local API. `node scripts/build-site.mjs --public-release` prepares `outputs/website` with the real release download link; `node scripts/release.mjs <build-folder>` adds the EXE/checksum/notices. Do not publish an incomplete website download folder.
 
 The Windows app bundles its processing engines but never packages the user's media or downloaded speech-model weights. The generated setup page explains the one-time model download and storage controls. Electron's embedded media libraries and bundled processing dependencies are covered by the included notices; the FFmpeg build is GPLv3 and must be distributed with its required licence and corresponding-source materials.
 
@@ -66,6 +66,10 @@ Policy text is shared in `shared/policies.mjs`. Publisher country is the Philipp
 
 ## Optional support
 
-onlysubs keeps its core local editor free and contains no in-app advertising, ad network, analytics SDK, tracking pixel, or sale of video/transcript data. The website may link to `https://github.com/sponsors/0xMrw1ck` for voluntary support after the WickWorks GitHub Sponsors profile is approved and enabled. Contributions must not unlock core editor features, alter export quality, create an account, or send app media to WickWorks. Before accepting regular income, WickWorks should confirm Philippine business-registration, tax, consumer, and record-keeping obligations with a qualified Philippine accountant or lawyer.
+onlysubs keeps its core local editor free and contains no in-app advertising, ad network, analytics SDK, tracking pixel, or sale of video/transcript data. GitHub Sponsors is under verification; no contribution is accepted until WickWorks enables the profile. After activation, contributions must not unlock core editor features, alter export quality, create an account, or send app media to WickWorks. A future resource page may show clearly labelled creator-tool referrals, and WickWorks may separately offer optional template-design, onboarding, and custom-branding services. Before accepting regular income, WickWorks should confirm Philippine business-registration, tax, consumer, and record-keeping obligations with a qualified Philippine accountant or lawyer.
+
+## Update channel and source access
+
+The public `0xMrw1ck/onlysubs-updates` repository contains only Windows installers, `latest.yml`, checksums, notices, and release notes. Version 0.6.0 migrates installed users to that update channel. The source repository must remain public until existing 0.5.x users have had a reasonable migration period; making it private sooner would prevent their automatic update. Before changing source visibility, complete the FFmpeg licence audit and make the exact corresponding FFmpeg source/build information available with every public binary release.
 
 See `outputs/RELEASE-CHECKLIST.md` for public-launch blockers and verification scope. The optional WebMCP demo tool still requires a supported browser contract check.

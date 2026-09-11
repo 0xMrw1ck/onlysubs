@@ -1,12 +1,13 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import {policies,publisher} from '../shared/policies.mjs'
+const pkg=JSON.parse(await fs.readFile('package.json','utf8')),releaseOwner='0xMrw1ck',releaseRepo='onlysubs-updates',releaseName=`onlysubs-${pkg.version}-setup-x64.exe`
 const root=path.resolve('site'),publicRelease=process.argv.includes('--public-release'),out=publicRelease?path.resolve('outputs/website'):path.join(root,'dist')
 await fs.mkdir(out,{recursive:true})
 for(const name of ['index.html','site.css','demo.js'])await fs.copyFile(path.join(root,name),path.join(out,name))
 const html=await fs.readFile(path.join(out,'index.html'),'utf8')
-const releaseLink='https://github.com/0xMrw1ck/onlysubs/releases/download/v0.5.0/onlysubs-0.5.0-setup-x64.exe'
-await fs.writeFile(path.join(out,'index.html'),html.replace(/href="downloads\/onlysubs-0\.3\.0-windows-x64\.exe"/g,`href="${releaseLink}"`).replace(/href="downloads\/SHA256SUMS\.txt"/g,'href="https://github.com/0xMrw1ck/onlysubs/releases/latest/download/SHA256SUMS.txt"'))
+const releaseLink=`https://github.com/${releaseOwner}/${releaseRepo}/releases/download/v${pkg.version}/${releaseName}`
+await fs.writeFile(path.join(out,'index.html'),html.replace(/href="downloads\/onlysubs-0\.3\.0-windows-x64\.exe"/g,`href="${releaseLink}"`).replace(/href="downloads\/SHA256SUMS\.txt"/g,`href="https://github.com/${releaseOwner}/${releaseRepo}/releases/latest/download/SHA256SUMS.txt"`))
 await fs.copyFile('public/onlysubs-logo.png',path.join(out,'onlysubs-logo.png'))
 const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')
 const shell=(title,body)=>`<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)} — onlysubs</title><link rel="stylesheet" href="site.css"><link rel="icon" href="onlysubs-logo.png"></head><body><a class="skip" href="#main">Skip to content</a><header><a class="brand" href="./">onlysubs <span>by WickWorks</span></a><a href="./#download">Windows app</a></header><main id="main" class="policy"><h1>${escape(title)}</h1>${body}</main><footer><a href="./">Back to onlysubs</a><a href="mailto:${publisher.email}">Contact WickWorks</a></footer></body></html>`

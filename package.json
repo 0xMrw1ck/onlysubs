@@ -1,6 +1,6 @@
 {
   "name": "onlysubs",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "WickWorks <jakenftwick@gmail.com>",
   "description": "onlysubs — a clipping tool for everyone",
   "main": "electron/main.cjs",
@@ -20,7 +20,8 @@
       "output": "work/windows-build"
     },
     "artifactName": "onlysubs-${version}-setup-${arch}.${ext}",
-    "publish": [{"provider":"github","owner":"0xMrw1ck","repo":"onlysubs"}],
+    "compression": "store",
+    "publish": [{"provider":"github","owner":"0xMrw1ck","repo":"onlysubs-updates"}],
     "nsis": {"oneClick":false,"perMachine":false,"allowToChangeInstallationDirectory":true,"deleteAppDataOnUninstall":false},
     "extraFiles": [
       {
