@@ -64,4 +64,8 @@ The packaged API is protected by an ephemeral secret attached only to same-origi
 
 Policy text is shared in `shared/policies.mjs`. Publisher country is the Philippines, brand WickWorks, provisional contact jakenftwick@gmail.com. Notices remain drafts pending formal operator/hosting/retention details and legal review. No analytics or third-party embeds are included. First-run terms acknowledgement is not verified parental consent or a blanket privacy consent. The static website demonstration neither processes media nor stores user input.
 
+## Optional support
+
+onlysubs keeps its core local editor free and contains no in-app advertising, ad network, analytics SDK, tracking pixel, or sale of video/transcript data. The website may link to `https://github.com/sponsors/0xMrw1ck` for voluntary support after the WickWorks GitHub Sponsors profile is approved and enabled. Contributions must not unlock core editor features, alter export quality, create an account, or send app media to WickWorks. Before accepting regular income, WickWorks should confirm Philippine business-registration, tax, consumer, and record-keeping obligations with a qualified Philippine accountant or lawyer.
+
 See `outputs/RELEASE-CHECKLIST.md` for public-launch blockers and verification scope. The optional WebMCP demo tool still requires a supported browser contract check.

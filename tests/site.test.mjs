@@ -16,7 +16,9 @@ test('private website has valid local links and no local-editor API or tracking 
   }
  }
  const index=await fs.readFile(path.join(root,'index.html'),'utf8')
- assert.match(index,/github\.com\/0xMrw1ck\/onlysubs\/releases\/download\/v0\.4\.0\/onlysubs-0\.4\.0-setup-x64\.exe/)
+ assert.match(index,/github\.com\/0xMrw1ck\/onlysubs\/releases\/download\/v0\.5\.0\/onlysubs-0\.5\.0-setup-x64\.exe/)
  assert.match(index,/Permanent Free tier/)
+ assert.match(index,/https:\/\/github\.com\/sponsors\/0xMrw1ck/)
+ assert.match(index,/No app analytics, tracking pixels, third-party embeds, or in-app advertising\./)
  assert.doesNotMatch(await fs.readFile(path.join(root,'demo.js'),'utf8'),/fetch\(|localStorage|document\.cookie/)
 })
