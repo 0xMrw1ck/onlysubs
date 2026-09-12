@@ -1,7 +1,7 @@
 {
   "name": "onlysubs",
   "version": "0.6.0",
-  "author": "WickWorks <jakenftwick@gmail.com>",
+  "author": "WickWorks <hello@wickworks.app>",
   "description": "onlysubs — a clipping tool for everyone",
   "main": "electron/main.cjs",
   "scripts": {

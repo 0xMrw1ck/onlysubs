@@ -62,7 +62,7 @@ The Windows app bundles its processing engines but never packages the user's med
 
 The packaged API is protected by an ephemeral secret attached only to same-origin Electron requests. Development browser mode remains local-only, with Host/Origin/Fetch-Site checks; it is not a public hosting server. Production Electron blocks external navigation, new windows and permissions, disables renderer Node access, and enables sandboxing. Import validation limits size and resolves the real local media path. Ollama redirects are denied.
 
-Policy text is shared in `shared/policies.mjs`. Publisher country is the Philippines, brand WickWorks, provisional contact jakenftwick@gmail.com. Notices remain drafts pending formal operator/hosting/retention details and legal review. No analytics or third-party embeds are included. First-run terms acknowledgement is not verified parental consent or a blanket privacy consent. The static website demonstration neither processes media nor stores user input.
+Policy text is shared in `shared/policies.mjs`. Publisher country is the Philippines, brand WickWorks, and contact email is hello@wickworks.app. Notices remain drafts pending formal operator/hosting/retention details and legal review. No analytics or third-party embeds are included. First-run terms acknowledgement is not verified parental consent or a blanket privacy consent. The static website demonstration neither processes media nor stores user input.
 
 ## Optional support
 
