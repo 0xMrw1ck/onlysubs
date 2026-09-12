@@ -12,6 +12,9 @@ async function atomic(file,data){await fs.mkdir(path.dirname(file),{recursive:tr
 const readJob=async id=>JSON.parse(await fs.readFile(path.join(jobRoot,validId(id),'status.json'),'utf8'))
 async function latest(){try{const saved=JSON.parse(await fs.readFile(path.join(jobRoot,'latest.json'),'utf8'));return readJob(saved.id)}catch{return null}}
 async function serveFile(req,res,file,download=false){
+  const link=await fs.lstat(file),real=await fs.realpath(file)
+  const normalize=p=>process.platform==='win32'?path.resolve(p).toLowerCase():path.resolve(p)
+  if(!link.isFile()||link.isSymbolicLink()||normalize(real)!==normalize(file))throw new Error('Linked media paths are not allowed.')
   const stat=await fs.stat(file),size=stat.size
   const range=req.headers.range;let start=0,end=size-1,status=200
   if(range){const match=/^bytes=(\d*)-(\d*)$/.exec(range);if(!match){res.writeHead(416,{'Content-Range':'bytes */'+size});return res.end()}

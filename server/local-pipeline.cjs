@@ -15,7 +15,7 @@ function run(bin,args,{cwd,onProgress}={}) {
     child.stderr.on('data',d=>{err=(err+d).slice(-4000)})
     child.stdout.on('data',d=>{
       out=(out+d).slice(-1000000);buffer+=d
-      const lines=buffer.split(/\r?\n/);buffer=lines.pop()
+      const lines=buffer.split(/\r?\n/);buffer=lines.pop().slice(-65536)
       for(const line of lines){const match=line.match(/^out_time_us=(\d+)/);if(match)onProgress?.(Number(match[1])/1e6)}
     })
     child.on('error',e=>reject(new Error(bin+': '+e.message)))
@@ -31,7 +31,7 @@ async function getSettings(){
 async function saveSettings(s){await fs.mkdir(workDir,{recursive:true});const next=Object.fromEntries(Object.keys(defaults).map(k=>[k,s[k]??defaults[k]]));await fs.writeFile(path.join(workDir,'settings.json'),JSON.stringify(next,null,2));return getSettings()}
 async function health(){const s=await getSettings(),embedded=!!s.transcriberPath;const [ffmpeg,transcriber]=await Promise.all([run(s.ffmpegPath,['-version']).then(()=>true,()=>false),embedded?run(s.transcriberPath,['--health']).then(()=>true,()=>false):run(s.pythonPath,['-c','import faster_whisper']).then(()=>true,()=>false)]);return {ffmpeg,transcriber,embedded,ready:ffmpeg&&transcriber}}
 async function probe(video){
-  const s=await getSettings(),data=JSON.parse(await run(s.ffprobePath,['-v','error','-show_format','-show_streams','-of','json',video]))
+  const s=await getSettings(),data=JSON.parse(await run(s.ffprobePath,['-protocol_whitelist','file,pipe','-v','error','-show_format','-show_streams','-of','json',video]))
   const stream=data.streams.find(s=>s.codec_type==='video');if(!stream)throw new Error('No video stream found.')
   const rotated=Math.abs(Number(stream.side_data_list?.find(x=>x.rotation!==undefined)?.rotation)||0)%180===90
   return {duration:Number(data.format.duration||stream.duration),width:rotated?stream.height:stream.width,height:rotated?stream.width:stream.height,frameRate:stream.avg_frame_rate,hasAudio:data.streams.some(s=>s.codec_type==='audio'),colorTransfer:stream.color_transfer,colorPrimaries:stream.color_primaries,colorSpace:stream.color_space,colorRange:stream.color_range}
@@ -39,7 +39,7 @@ async function probe(video){
 async function analyse({jobId,video,onStage=async()=>{}}){
   const s=await getSettings(),temp=path.join(workDir,'jobs',jobId);await fs.mkdir(temp,{recursive:true})
   const metadata=await probe(video),audio=path.join(temp,'audio.wav'),transcriptFile=path.join(temp,'transcript.json')
-  await onStage(12,'Extracting audio');await run(s.ffmpegPath,['-y','-i',video,'-vn','-ac','1','-ar','16000',audio])
+  await onStage(12,'Extracting audio');await run(s.ffmpegPath,['-y','-protocol_whitelist','file,pipe','-i',video,'-vn','-ac','1','-ar','16000',audio])
   await onStage(38,'Transcribing and aligning words. This stage can take several minutes.')
   const script=path.join(__dirname,'transcribe.py').replace('app.asar'+path.sep,'app.asar.unpacked'+path.sep),cache=path.join(root,'models')
   if(s.transcriberPath)await run(s.transcriberPath,[audio,transcriptFile,'--model',s.transcriptionModel,'--cache-dir',cache])
@@ -84,7 +84,7 @@ async function exportClips({video,clips=[],transcript=[],fullVideo=false,combine
     onProgress(completed/total*(joining?94:99),detail)
     // PCM intermediates avoid adding AAC encoder delay at each cut. Video is encoded only once.
     const audio=joining?['-c:a','pcm_s16le']:['-c:a','aac','-b:a','320k']
-    await run(s.ffmpegPath,['-y','-ss',String(c.start),'-i',video,'-t',String(duration),'-map','0:v:0','-map','0:a:0?','-vf',vf,'-c:v','libx264','-preset',encoding.preset,'-crf',String(encoding.crf),'-pix_fmt','yuv420p','-fps_mode','passthrough',...colorArgs,...audio,...(joining?[]:['-movflags','+faststart']),'-progress','pipe:1','-nostats',filename],{cwd:folder,onProgress:seconds=>onProgress(Math.min(99,(completed+Math.min(duration,seconds))/total*(joining?94:99)),detail)})
+    await run(s.ffmpegPath,['-y','-ss',String(c.start),'-protocol_whitelist','file,pipe','-i',video,'-t',String(duration),'-map','0:v:0','-map','0:a:0?','-vf',vf,'-c:v','libx264','-preset',encoding.preset,'-crf',String(encoding.crf),'-pix_fmt','yuv420p','-fps_mode','passthrough',...colorArgs,...audio,...(joining?[]:['-movflags','+faststart']),'-progress','pipe:1','-nostats',filename],{cwd:folder,onProgress:seconds=>onProgress(Math.min(99,(completed+Math.min(duration,seconds))/total*(joining?94:99)),detail)})
     completed+=duration
     if(joining)parts.push({filename,duration})
     else files.push({name:filename,path:path.join(folder,filename),duration})
@@ -94,7 +94,7 @@ async function exportClips({video,clips=[],transcript=[],fullVideo=false,combine
     // Only generated, relative filenames enter the manifest; no user paths or shell interpolation.
     await fs.writeFile(path.join(folder,'join.ffconcat'),'ffconcat version 1.0\n'+parts.map(p=>`file '${p.filename}'\nduration ${p.duration}\n`).join(''))
     onProgress(94,'Joining selections into one MP4')
-    await run(s.ffmpegPath,['-y','-f','concat','-safe','1','-i','join.ffconcat','-map','0:v:0','-map','0:a:0?','-c:v','copy','-c:a','aac','-b:a','320k','-t',String(total),'-movflags','+faststart','-progress','pipe:1','-nostats',filename],{cwd:folder,onProgress:seconds=>onProgress(Math.min(99,94+seconds/total*5),'Joining selections into one MP4')})
+    await run(s.ffmpegPath,['-y','-f','concat','-safe','1','-protocol_whitelist','file,pipe','-i','join.ffconcat','-map','0:v:0','-map','0:a:0?','-c:v','copy','-c:a','aac','-b:a','320k','-t',String(total),'-movflags','+faststart','-progress','pipe:1','-nostats',filename],{cwd:folder,onProgress:seconds=>onProgress(Math.min(99,94+seconds/total*5),'Joining selections into one MP4')})
     files.push({name:filename,path:path.join(folder,filename),duration:total})
     // Remove only the scratch files created by this export, after the final MP4 succeeds.
     await Promise.all(parts.map(p=>fs.unlink(path.join(folder,p.filename))))
